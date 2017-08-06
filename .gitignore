@@ -1,2 +1,7 @@
-*.class
-*.log
+# intellij idea
+/.idea
+
+# sbt
+/target
+/project/target
+/project/project/target
