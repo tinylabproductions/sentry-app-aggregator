@@ -1,14 +1,14 @@
 package com.tinylabproductions.sentry_app_aggregator.data
 
 import math.Ordering.Implicits._
-import com.tinylabproductions.sentry_app_aggregator.data.Counters.PerVersionNumber
+import com.tinylabproductions.sentry_app_aggregator.data.Counters.AppCounters
 
 object Counters {
-  case class PerVersionNumber(map: Map[VersionNumber, Int], latest: Option[VersionNumber]) {
+  case class AppCounters(counters: Map[VersionNumber, Int], latest: Option[VersionNumber]) {
     def apply(versionNumber: VersionNumber): Int =
-      map.getOrElse(versionNumber, 0)
+      counters.getOrElse(versionNumber, 0)
 
-    def +(versionNumber: VersionNumber, pingsToSwitchLatestVersion: Int): PerVersionNumber = {
+    def +(versionNumber: VersionNumber, pingsToSwitchLatestVersion: Int): AppCounters = {
       val newCount = apply(versionNumber) + 1
       val newLatest = latest match {
         case Some(currentLatestVersion) if
@@ -22,7 +22,7 @@ object Counters {
           Some(versionNumber)
       }
       copy(
-        map = map.updated(versionNumber, newCount),
+        counters = counters.updated(versionNumber, newCount),
         latest = newLatest
       )
     }
@@ -30,15 +30,15 @@ object Counters {
     def shouldPass(versionNumber: VersionNumber): Boolean =
       latest.fold(true)(versionNumber >= _)
   }
-  object PerVersionNumber {
+  object AppCounters {
     val empty = apply(Map.empty, None)
   }
 
   val empty = apply(Map.empty)
 }
-case class Counters(counters: Map[AppKey, Counters.PerVersionNumber]) {
-  def forApp(appKey: AppKey): PerVersionNumber =
-    counters.getOrElse(appKey, PerVersionNumber.empty)
+case class Counters(counters: Map[AppKey, Counters.AppCounters]) {
+  def forApp(appKey: AppKey): AppCounters =
+    counters.getOrElse(appKey, AppCounters.empty)
 
   def +(appData: AppData, pingsToSwitchLatestVersion: Int): Counters = {
     val app = forApp(appData.key) + (appData.versionNumber, pingsToSwitchLatestVersion)

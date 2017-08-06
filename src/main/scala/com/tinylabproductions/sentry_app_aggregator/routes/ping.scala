@@ -5,11 +5,11 @@ import com.tinylabproductions.sentry_app_aggregator.data.VersionNumber
 
 object ping {
   def route() = post {
-    parameters(
+    parameters((
       "app",
       "version".as[VersionNumber]
-    ) { (app, version) =>
-
+    )) { (app, version) =>
+      ???
     }
   }
 }

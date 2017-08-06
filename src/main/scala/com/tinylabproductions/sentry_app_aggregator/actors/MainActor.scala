@@ -23,7 +23,7 @@ object MainActor {
         case PingReceived(appData) =>
           counters += (appData, pingsForVersionSwitch)
           Actor.same
-        case ErrorReceived(appData, request) =>
+        case ErrorReceived(appData, request @ _) =>
           if (counters.shouldTransmit(appData)) {
             ???
           }
