@@ -1,7 +1,9 @@
 package com.tinylabproductions.sentry_app_aggregator.data
 
-import math.Ordering.Implicits._
 import com.tinylabproductions.sentry_app_aggregator.data.Counters.AppCounters
+import play.api.libs.json._
+
+import scala.math.Ordering.Implicits._
 
 object Counters {
   case class AppCounters(counters: Map[VersionNumber, Int], latest: Option[VersionNumber]) {
@@ -32,9 +34,13 @@ object Counters {
   }
   object AppCounters {
     val empty = apply(Map.empty, None)
+
+    implicit val format: OFormat[AppCounters] = Json.format[AppCounters]
   }
 
   val empty = apply(Map.empty)
+
+  implicit val format: OFormat[Counters] = Json.format[Counters]
 }
 case class Counters(counters: Map[AppKey, Counters.AppCounters]) {
   def forApp(appKey: AppKey): AppCounters =

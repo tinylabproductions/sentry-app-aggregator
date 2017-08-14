@@ -66,14 +66,13 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= {
-  val monocleVersion = "1.4.0"
   Seq(
-    "com.tinylabproductions" %% "akka-http-daemon" % "1.2.0",
+    "com.tinylabproductions" %% "akka-http-daemon" % "1.3.0",
+    "de.heikoseeberger" %% "akka-http-play-json" % "1.17.0",
     "com.typesafe.akka" %% "akka-typed" % "2.5.3",
     "com.typesafe.play" %% "play-json" % "2.6.0",
     "com.softwaremill.quicklens" %% "quicklens" % "1.4.8",
-    "com.github.julien-truffaut" %% "monocle-core" % monocleVersion,
-    "com.github.julien-truffaut" %% "monocle-macro" % monocleVersion,
+    "com.github.kxbmap" %% "configs" % "0.4.4",
     "org.specs2" %% "specs2-core" % "3.9.1" % "test"
   )
 }
