@@ -12,13 +12,13 @@ import com.tinylabproductions.sentry_app_aggregator.data.{AppData, Cfg}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object error {
+object catchAll {
   def route(
     tags: Cfg.Tags, proxy: Cfg.Proxy,
     sendTo: ActorRef[MainActor.ErrorReceived]
   )(implicit scheduler: Scheduler, ec: ExecutionContext): Route = {
     val reads = AppData.sentryRequestReads(
-      appNameTag = tags.appNameTag, appVersionTag = tags.versionNumberTag
+      appKeyTags = tags.appKey, appVersionTag = tags.versionNumber
     )
     val unmarshaller = AppData.sentryRequestRequestUnmarshaller(reads)
     implicit val timeout: Timeout = Timeout(proxy.timeout)

@@ -8,7 +8,9 @@ import com.tinylabproductions.sentry_app_aggregator.data.{AppData, AppKey, Versi
 
 object ping {
   def route(sendTo: ActorRef[MainActor.PingReceived]): Route =
-    (post & parameters(("app".as[AppKey], "version".as[VersionNumber]))) { (app, version) =>
+    (
+      path("ping") & post & parameters(("app".as[AppKey], "version".as[VersionNumber]))
+    ) { (app, version) =>
       sendTo ! MainActor.PingReceived(AppData(app, version))
       complete("OK")
     }

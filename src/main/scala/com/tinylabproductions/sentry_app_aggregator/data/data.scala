@@ -16,6 +16,8 @@ object AppKey {
 
   implicit val unmarshaller: Unmarshaller[String, AppKey] =
     Unmarshaller.strict(apply)
+
+  implicit val ordering: Ordering[AppKey] = Ordering.by((_: AppKey).s)
 }
 
 case class VersionNumber(parts: List[Int]) {
@@ -67,10 +69,17 @@ object VersionNumber {
 
 case class AppData(key: AppKey, versionNumber: VersionNumber)
 object AppData {
-  def sentryRequestReads(appNameTag: String, appVersionTag: String): Reads[AppData] = {
+  def sentryRequestReads(appKeyTags: Vector[String], appVersionTag: String): Reads[AppData] = {
     val tags = JsPath \ "tags"
+    val appKey =
+      appKeyTags
+        .map(tag => (tags \ tag).readWithDefault(""))
+        .reduceLeft { (a, b) =>
+          a.flatMap(aStr => b.map(bStr => s"$aStr|$bStr"))
+        }
+        .map(AppKey.apply)
     (
-      (tags \ appNameTag).read[AppKey] and
+      appKey and
       (tags \ appVersionTag).read[VersionNumber]
     )(AppData.apply _)
   }

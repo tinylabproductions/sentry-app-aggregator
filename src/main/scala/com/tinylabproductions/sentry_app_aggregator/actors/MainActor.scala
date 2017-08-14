@@ -17,6 +17,7 @@ object MainActor {
   case class ErrorReceived(
     appData: AppData, request: HttpRequest, replyTo: ActorRef[Either[Throwable, HttpResponse]]
   ) extends Protocol
+  case class GetCounters(replyTo: ActorRef[Counters]) extends Protocol
 }
 class MainActor(
   config: Cfg.MainActor, initialCounters: Counters, log: Logger, ctx: ActorContext[Protocol],
@@ -27,14 +28,27 @@ class MainActor(
   import ctx.executionContext
   private[this] implicit val _materializer: Materializer = materializer
 
+  private[this] def pingReceived(appData: AppData): Unit = {
+    counters += (appData, config.pingsForVersionSwitch)
+  }
+
   override def onMessage(msg: Protocol): Behavior[Protocol] =
     msg match {
       case PingReceived(appData) =>
-        counters += (appData, config.pingsForVersionSwitch)
+        pingReceived(appData)
         Actor.same
       case ErrorReceived(appData, request @ _, replyTo) =>
+        pingReceived(appData)
+
         if (counters.shouldTransmit(appData)) {
-          val rewrittenRequest = request.copy(uri = config.sentryUri)
+          val rewrittenRequest =
+            request
+              .withUri(
+                request.uri
+                  .withScheme(config.sentryUrl.scheme)
+                  .withAuthority(config.sentryUrl.host, config.sentryUrl.port)
+              )
+              .withHeaders(request.headers.filterNot(_.is("host")))
           log.debug(
             s"""Proxying request for $appData,
                |original  = $request,
@@ -52,6 +66,9 @@ class MainActor(
         else {
           log.debug(s"Request for $appData filtered out (request=$request)")
         }
+        Actor.same
+      case GetCounters(replyTo) =>
+        replyTo ! counters
         Actor.same
     }
 }
