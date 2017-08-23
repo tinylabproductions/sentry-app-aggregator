@@ -48,7 +48,10 @@ class MainActor(
                   .withScheme(config.sentryUrl.scheme)
                   .withAuthority(config.sentryUrl.host, config.sentryUrl.port)
               )
-              .withHeaders(request.headers.filterNot(_.is("host")))
+              .withHeaders(request.headers.filterNot { h =>
+                // Filter out headers which are added by forward proxy or akka
+                (h is "host") || (h is "remote-address") || (h is "timeout-access")
+              })
           log.debug(
             s"""Proxying request for $appData,
                |original  = $request,
