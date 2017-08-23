@@ -9,6 +9,8 @@ import scala.util.Try
 
 case class AppKey(s: String) extends AnyVal
 object AppKey {
+  def apply(parts: Vector[String]): AppKey = apply(parts.mkString("|"))
+
   implicit val format: Format[AppKey] = Format(
     Reads.StringReads.map(apply),
     Writes.StringWrites.contramap(_.s)
@@ -73,9 +75,9 @@ object AppData {
     val tags = JsPath \ "tags"
     val appKey =
       appKeyTags
-        .map(tag => (tags \ tag).readWithDefault(""))
+        .map(tag => (tags \ tag).readWithDefault("").map(Vector(_)))
         .reduceLeft { (a, b) =>
-          a.flatMap(aStr => b.map(bStr => s"$aStr|$bStr"))
+          for (aVec <- a; bVec <- b) yield aVec ++ bVec
         }
         .map(AppKey.apply)
     (

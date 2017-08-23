@@ -11,18 +11,21 @@ import configs.Configs
 import scala.concurrent.duration.FiniteDuration
 
 case class Cfg(
-  http: AkkaHttpDaemon.HttpConfig, counters: Cfg.Counters, actor: MainActor, tags: Tags, proxy: Proxy
+  http: AkkaHttpDaemon.HttpConfig, counters: Cfg.Counters, actor: MainActor, appKey: Cfg.AppKey,
+  proxy: Proxy
 )
 object Cfg {
   case class Counters(path: Path)
-  case class Tags(appKey: Vector[String], versionNumber: String) {
-    require(appKey.nonEmpty, "App key tags can't be empty!")
-  }
   case class Proxy(timeout: FiniteDuration)
   case class MainActor(pingsForVersionSwitch: Int, sentryUrl: SentryUrl)
   object MainActor {
     case class SentryUrl(scheme: String, host: Uri.Host, port: Int)
   }
+
+  case class Names(appKey: Vector[String], versionNumber: String) {
+    require(appKey.nonEmpty, "App key names can't be empty!")
+  }
+  case class AppKey(pingFormFields: Names, proxyTags: Names)
 
   implicit val uriHostConfigs: Configs[Uri.Host] = Configs.stringConfigs.map(Uri.Host(_))
 }

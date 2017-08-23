@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object catchAll {
   def route(
-    tags: Cfg.Tags, proxy: Cfg.Proxy,
+    tags: Cfg.Names, proxy: Cfg.Proxy,
     sendTo: ActorRef[MainActor.ErrorReceived]
   )(implicit scheduler: Scheduler, ec: ExecutionContext): Route = {
     val reads = AppData.sentryRequestReads(

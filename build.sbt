@@ -1,6 +1,6 @@
 name := "sentry-app-aggregator"
 organization := "com.tinylabproductions"
-version := "1.0.0"
+version := "1.0.3"
 
 scalaVersion := "2.12.3"
 
@@ -79,6 +79,8 @@ libraryDependencies ++= {
     // Akka -> logback
     "com.typesafe.akka" %% "akka-slf4j" % "2.4.16",
     "ch.qos.logback" % "logback-classic" % "1.1.7",
+    // Error reporting
+    "io.sentry" % "sentry-logback" % "1.5.0",
     "org.specs2" %% "specs2-core" % "3.9.1" % "test"
   )
 }

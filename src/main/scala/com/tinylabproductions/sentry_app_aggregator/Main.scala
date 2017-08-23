@@ -68,15 +68,13 @@ object Main {
       "main"
     )
 
-    val allRoutes = extractUri { uri =>
-      log.debug(uri.authority.userinfo)
-
-      routes.ping.route(mainActor.narrow) ~
+    val allRoutes = logRequestResult("main-route") {
+      routes.ping.route(cfg.appKey.pingFormFields, mainActor.narrow) ~
       routes.status.route(
         mainActor.narrow, Timeout(5.minutes), httpActorSystem.scheduler, httpActorSystem.dispatcher
       ) ~
       // This needs to be the last route
-      routes.catchAll.route(cfg.tags, cfg.proxy, mainActor.narrow)(
+      routes.catchAll.route(cfg.appKey.proxyTags, cfg.proxy, mainActor.narrow)(
         httpActorSystem.scheduler, httpActorSystem.dispatcher
       )
     }
