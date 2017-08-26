@@ -98,8 +98,39 @@ object AppData {
       }
     }
 
-  def sentryRequestRequestUnmarshaller(reads: Reads[AppData]): FromRequestUnmarshaller[AppData] =
-    gzipMessageUnmarshaller.map { jsonS =>
-      Json.parse(jsonS).validate(reads).get
+  def sentryRequestRequestUnmarshaller(reads: Reads[AppData]): FromRequestUnmarshaller[AppData] = {
+    def jsErrorToString(err: JsError) = {
+      JsError.toFlatForm(err).flatMap { case (path, errors) =>
+        errors.map { error => s"$error @ $path" }
+      }.mkString("\n")
     }
+
+    gzipMessageUnmarshaller.map { jsonS =>
+      val either =
+        Try(Json.parse(jsonS)).toEither
+        .left.map(t => s"Failed to parse as JSON (${t.getMessage}):\n\n$jsonS")
+        .flatMap { json =>
+          json.validate(reads) match {
+            case JsSuccess(value, _) => Right(value)
+            case error: JsError => Left(
+              s"""Failed to extract AppData from JSON:
+               |
+               |Errors:
+               |${jsErrorToString(error)}
+               |
+               |Json:
+               |$jsonS
+               |
+               |""".stripMargin
+            )
+        } }
+
+      either match {
+        case Left(error) =>
+          throw new IllegalArgumentException(error)
+        case Right(value) =>
+          value
+      }
+    }
+  }
 }

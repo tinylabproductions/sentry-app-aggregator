@@ -1,6 +1,6 @@
 name := "sentry-app-aggregator"
 organization := "com.tinylabproductions"
-version := "1.0.4"
+version := "1.0.6"
 
 scalaVersion := "2.12.3"
 

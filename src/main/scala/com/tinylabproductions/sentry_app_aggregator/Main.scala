@@ -23,6 +23,11 @@ import play.api.libs.json.{JsError, JsSuccess, Json}
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import Cfg.uriHostConfigs
+import akka.event.Logging
+import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.server.RouteResult
+import akka.http.scaladsl.server.RouteResult.Rejected
+import akka.http.scaladsl.server.directives.LogEntry
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -68,7 +73,15 @@ object Main {
       "main"
     )
 
-    val allRoutes = logRequestResult("main-route") {
+    val logger: HttpRequest => RouteResult => Option[LogEntry] = req ⇒ {
+      case Rejected(rejections) =>
+        Some(LogEntry(
+          s"Request: $req\nwas rejected with rejections:\n$rejections", Logging.InfoLevel
+        ))
+      case result =>
+        Some(LogEntry(s"Request: $req\nResult: $result", Logging.DebugLevel))
+    }
+    val allRoutes = logRequestResult(logger) {
       routes.ping.route(cfg.appKey.pingFormFields, mainActor.narrow) ~
       routes.status.route(
         mainActor.narrow, Timeout(5.minutes), httpActorSystem.scheduler, httpActorSystem.dispatcher
