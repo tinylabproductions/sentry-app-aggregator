@@ -1,6 +1,6 @@
 name := "sentry-app-aggregator"
 organization := "com.tinylabproductions"
-version := "1.0.3"
+version := "1.0.4"
 
 scalaVersion := "2.12.3"
 
@@ -69,7 +69,6 @@ resolvers ++= Seq(
 libraryDependencies ++= {
   Seq(
     "com.tinylabproductions" %% "akka-http-daemon" % "1.3.0",
-    "de.heikoseeberger" %% "akka-http-play-json" % "1.17.0",
     // Need to specify explicitly, or runtime errors happen otherwise
     "com.typesafe.akka" %% "akka-stream" % "2.5.4",
     "com.typesafe.akka" %% "akka-typed" % "2.5.4",

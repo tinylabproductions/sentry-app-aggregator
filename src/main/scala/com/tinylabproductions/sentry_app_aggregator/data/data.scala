@@ -1,7 +1,8 @@
 package com.tinylabproductions.sentry_app_aggregator.data
 
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller, Unmarshaller}
-import de.heikoseeberger.akkahttpplayjson.PlayJsonSupport
+import akka.http.scaladsl.coding.Gzip
+import akka.http.scaladsl.model.HttpMessage
+import akka.http.scaladsl.unmarshalling.{FromRequestUnmarshaller, Unmarshal, Unmarshaller}
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
@@ -86,13 +87,19 @@ object AppData {
     )(AppData.apply _)
   }
 
-  def sentryRequestEntityUnmarshaller(reads: Reads[AppData]): FromEntityUnmarshaller[AppData] =
-    PlayJsonSupport.unmarshaller(reads)
-
-  def sentryRequestRequestUnmarshaller(reads: Reads[AppData]): FromRequestUnmarshaller[AppData] = {
-    val um = sentryRequestEntityUnmarshaller(reads)
-    Unmarshaller.withMaterializer { implicit ec => implicit materializer => request =>
-      um(request.entity)
+  val gzipMessageUnmarshaller: Unmarshaller[HttpMessage, String] =
+    Unmarshaller.withMaterializer { _ => implicit materializer => msg =>
+      val `content-encoding` = msg.getHeader("Content-Encoding")
+      if (`content-encoding`.isPresent && `content-encoding`.get().value() == "gzip") {
+        val decompressedResponse = msg.entity.transformDataBytes(Gzip.decoderFlow)
+        Unmarshal(decompressedResponse).to[String]
+      } else {
+        Unmarshal(msg).to[String]
+      }
     }
-  }
+
+  def sentryRequestRequestUnmarshaller(reads: Reads[AppData]): FromRequestUnmarshaller[AppData] =
+    gzipMessageUnmarshaller.map { jsonS =>
+      Json.parse(jsonS).validate(reads).get
+    }
 }
