@@ -8,7 +8,7 @@ import com.tinylabproductions.sentry_app_aggregator.data.{AppData, AppKey, Cfg, 
 
 object ping {
   def route(
-    formFieldNames: Cfg.Names,
+    formFieldNames: Cfg.AppKey.Names,
     sendTo: ActorRef[MainActor.PingReceived]
   ): Route = {
     val appKeyDirective =

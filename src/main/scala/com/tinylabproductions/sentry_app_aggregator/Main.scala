@@ -87,7 +87,7 @@ object Main {
         mainActor.narrow, Timeout(5.minutes), httpActorSystem.scheduler, httpActorSystem.dispatcher
       ) ~
       // This needs to be the last route
-      routes.catchAll.route(cfg.appKey.proxyTags, cfg.proxy, mainActor.narrow)(
+      routes.catchAll.route(cfg.appKey.proxyAppKeyTags, cfg.proxy, mainActor.narrow)(
         httpActorSystem.scheduler, httpActorSystem.dispatcher
       )
     }

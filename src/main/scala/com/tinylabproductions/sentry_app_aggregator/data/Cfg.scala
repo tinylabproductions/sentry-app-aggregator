@@ -22,10 +22,14 @@ object Cfg {
     case class SentryUrl(scheme: String, host: Uri.Host, port: Int)
   }
 
-  case class Names(appKey: Vector[String], versionNumber: String) {
-    require(appKey.nonEmpty, "App key names can't be empty!")
+  case class AppKey(pingFormFields: AppKey.Names, proxyAppKeyTags: Vector[String]) {
+    require(proxyAppKeyTags.nonEmpty, "App key tags can't be empty!")
   }
-  case class AppKey(pingFormFields: Names, proxyTags: Names)
+  object AppKey {
+    case class Names(appKey: Vector[String], versionNumber: String) {
+      require(appKey.nonEmpty, "App key names can't be empty!")
+    }
+  }
 
   implicit val uriHostConfigs: Configs[Uri.Host] = Configs.stringConfigs.map(Uri.Host(_))
 }

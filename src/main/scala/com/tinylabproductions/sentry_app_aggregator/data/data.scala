@@ -72,19 +72,25 @@ object VersionNumber {
 
 case class AppData(key: AppKey, versionNumber: VersionNumber)
 object AppData {
-  def sentryRequestReads(appKeyTags: Vector[String], appVersionTag: String): Reads[AppData] = {
+  def sentryRequestReads(appKeyTags: Vector[String]): Reads[AppData] = {
     val tags = JsPath \ "tags"
-    val appKey =
+    val appKeyReads =
       appKeyTags
         .map(tag => (tags \ tag).readWithDefault("").map(Vector(_)))
         .reduceLeft { (a, b) =>
           for (aVec <- a; bVec <- b) yield aVec ++ bVec
         }
         .map(AppKey.apply)
-    (
-      appKey and
-      (tags \ appVersionTag).read[VersionNumber]
-    )(AppData.apply _)
+    val releaseReads =
+      // release from android comes in a format of your.package.name-version
+      //
+      // last always succeeds, even on an empty string:
+      // > "".split("-").last => ""
+      (JsPath \ "release")
+        .read[String]
+        .map(s => JsString(s.split("-").last))
+        .andThen(VersionNumber.format)
+    (appKeyReads and releaseReads)(AppData.apply _)
   }
 
   val gzipMessageUnmarshaller: Unmarshaller[HttpMessage, String] =
